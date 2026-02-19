@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Earn Secret — Game Room</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="room-body">
+
+  <!-- ─── Navbar ─────────────────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">EarnSecret</span>
+      </a>
+      <div class="nav-status">
+        <div class="conn-indicator" id="conn-indicator">
+          <span class="conn-dot"></span>
+          <span class="conn-label" id="conn-label">Connecting...</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── Main Room Container ────────────────────────────────────────────── -->
+  <main class="room-main">
+
+    <!-- Phase: Loading (shown immediately, hidden once WS connects) -->
+    <div class="room-phase" id="phase-loading">
+      <div class="glass-card" style="padding:2.5rem;text-align:center;">
+        <div class="modal-icon">⟳</div>
+        <h2>Connecting...</h2>
+        <p style="color:var(--text-secondary)">Setting up your game room</p>
+      </div>
+    </div>
+
+    <!-- Phase: Join (second player needs to enter secret) -->
+    <div class="room-phase hidden" id="phase-join">
+      <div class="glass-card join-card">
+        <div class="modal-icon">🔐</div>
+        <h2>You've Been Challenged!</h2>
+        <p>Enter your secret to join the game. It will be revealed if you lose.</p>
+        <div class="input-wrapper">
+          <textarea
+            id="join-secret-input"
+            class="glass-input"
+            placeholder="Type your secret here..."
+            maxlength="200"
+            rows="3"
+          ></textarea>
+          <div class="char-count"><span id="join-char-count">0</span>/200</div>
+        </div>
+        <button class="btn btn-primary btn-block" id="join-room-btn">
+          Accept Challenge
+        </button>
+      </div>
+    </div>
+
+    <!-- Phase: Waiting (creator waiting for opponent) -->
+    <div class="room-phase hidden" id="phase-waiting">
+      <div class="glass-card waiting-card">
+        <div class="modal-icon">⏳</div>
+        <h2>Waiting for Opponent</h2>
+        <p>Share your link to get someone to join.</p>
+        <div class="share-box">
+          <input type="text" id="room-share-link" class="glass-input" readonly />
+          <button class="btn btn-sm" id="room-copy-btn">Copy</button>
+        </div>
+        <div class="waiting-indicator">
+          <div class="waiting-pulse"></div>
+          <span>Waiting for second player...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase: Playing -->
+    <div class="room-phase hidden" id="phase-playing">
+      <div class="game-layout">
+
+        <!-- Game Info Bar -->
+        <div class="game-info-bar glass-card">
+          <div class="player-info" id="player-you">
+            <div class="player-avatar" id="your-avatar">?</div>
+            <div class="player-details">
+              <span class="player-name">You</span>
+              <span class="player-symbol" id="your-symbol"></span>
+            </div>
+          </div>
+          <div class="turn-indicator" id="turn-indicator">
+            <div class="turn-text" id="turn-text">—</div>
+          </div>
+          <div class="player-info right" id="player-opp">
+            <div class="player-details">
+              <span class="player-name">Opponent</span>
+              <span class="player-symbol" id="opp-symbol"></span>
+            </div>
+            <div class="player-avatar" id="opp-avatar">?</div>
+          </div>
+        </div>
+
+        <!-- Tic Tac Toe Board -->
+        <div id="ttt-container" class="game-container hidden">
+          <div class="ttt-board glass-card" id="ttt-board">
+            <!-- 9 cells injected by JS -->
+          </div>
+          <p class="game-hint" id="ttt-hint">Waiting for game to start...</p>
+        </div>
+
+        <!-- Chess Board -->
+        <div id="chess-container" class="game-container hidden">
+          <div class="chess-wrapper">
+            <div class="chess-files" id="chess-files-top">a b c d e f g h</div>
+            <div class="chess-board-row">
+              <div class="chess-ranks" id="chess-ranks">8 7 6 5 4 3 2 1</div>
+              <div class="chess-board glass-card" id="chess-board">
+                <!-- 64 squares injected by JS -->
+              </div>
+            </div>
+            <div class="chess-files" id="chess-files-bot">a b c d e f g h</div>
+          </div>
+          <p class="game-hint" id="chess-hint">Waiting for game to start...</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Phase: Game Over -->
+    <div class="room-phase hidden" id="phase-gameover">
+      <div class="glass-card gameover-card">
+        <div class="gameover-icon" id="gameover-icon">🏆</div>
+        <h2 id="gameover-title">Game Over</h2>
+        <div class="gameover-message" id="gameover-message"></div>
+        <div class="secret-reveal hidden" id="secret-reveal">
+          <div class="secret-label">🔓 Their Secret Was:</div>
+          <div class="secret-content" id="secret-content"></div>
+        </div>
+        <div class="gameover-actions">
+          <a href="/" class="btn btn-primary">Play Again</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase: Error -->
+    <div class="room-phase hidden" id="phase-error">
+      <div class="glass-card error-card">
+        <div class="modal-icon">⚠️</div>
+        <h2 id="error-title">Something went wrong</h2>
+        <p id="error-message">The room may not exist or has expired.</p>
+        <a href="/" class="btn btn-primary">Go Home</a>
+      </div>
+    </div>
+
+  </main>
+
+  
+  <script src="/room.js"></script>
+</body>
+</html>
