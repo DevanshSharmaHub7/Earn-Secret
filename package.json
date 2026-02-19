@@ -1,0 +1,14 @@
+{
+  "name": "earn-secret",
+  "version": "1.0.0",
+  "description": "Real-time multiplayer secret reveal game",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "uuid": "^9.0.0",
+    "ws": "^8.14.2"
+  }
+}
